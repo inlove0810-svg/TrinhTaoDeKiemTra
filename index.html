@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình Tạo Đề Kiểm Tra Các Môn Tiểu Học</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        /* Thêm style cho input file tùy chỉnh */
+        input[type="file"]::file-selector-button {
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.65rem 1rem;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-3xl p-8 rounded-2xl shadow-xl">
+        <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">
+            Trình Tạo Đề Kiểm Tra Tiểu Học
+        </h1>
+        <p class="text-center text-gray-600 mb-8">
+            Chọn tùy chọn, tải lên ma trận đề (nếu có) và nhận file Word (.docx).
+        </p>
+
+        <form id="testForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Môn học</label>
+                    <select id="subject" name="subject" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <option value="Toán">Toán</option>
+                        <option value="Tiếng Việt">Tiếng Việt</option>
+                        <option value="Khoa học">Khoa học</option>
+                        <option value="Lịch sử và Địa lý">Lịch sử và Địa lý</option>
+                        <option value="Tin học">Tin học</option>
+                        <option value="Tiếng Anh">Tiếng Anh</option>
+                        <option value="Công nghệ">Công nghệ</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="grade" class="block text-sm font-medium text-gray-700 mb-2">Lớp</label>
+                    <select id="grade" name="grade" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <option value="1">Lớp 1</option>
+                        <option value="2">Lớp 2</option>
+                        <option value="3">Lớp 3</option>
+                        <option value="4">Lớp 4</option>
+                        <option value="5">Lớp 5</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label for="topic" class="block text-sm font-medium text-gray-700 mb-2">Chủ đề / Bài học</label>
+                <input type="text" id="topic" name="topic" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Ví dụ: 'Phép cộng trong phạm vi 10'" required>
+            </div>
+            
+            <div>
+                <label for="matrixFile" class="block text-sm font-medium text-gray-700 mb-2">
+                    Tải lên Ma trận đề (Không bắt buộc)
+                </label>
+                <input type="file" id="matrixFile" name="matrixFile" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border file:border-gray-300 file:text-sm file:font-medium file:bg-gray-50 hover:file:bg-gray-100" accept=".docx,.pdf,.txt">
+                <p class="text-xs text-gray-500 mt-1">Hỗ trợ file .docx, .pdf, .txt. Nội dung file sẽ được đính kèm vào yêu cầu cho AI.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="numQuestions" class="block text-sm font-medium text-gray-700 mb-2">Số lượng câu hỏi</label>
+                    <input type="number" id="numQuestions" name="numQuestions" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" value="5" min="1" max="20">
+                </div>
+                <div>
+                    <label for="questionType" class="block text-sm font-medium text-gray-700 mb-2">Loại câu hỏi</label>
+                    <select id="questionType" name="questionType" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <option value="Trắc nghiệm (4 lựa chọn A, B, C, D)">Trắc nghiệm</option>
+                        <option value="Tự luận (trả lời ngắn)">Tự luận</option>
+                        <option value="Hỗn hợp (cả trắc nghiệm và tự luận)">Hỗn hợp</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" id="generateBtn" class="w-full bg-blue-600 text-white p-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                Tạo Đề & Tải Về (.docx)
+            </button>
+        </form>
+
+        <div id="loader" class="hidden mx-auto my-8 w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+
+        <div id="notification" class="text-center font-medium mt-4"></div>
+
+        </div>
+
+    <script type="module">
+        // --- Nhập các thư viện từ CDN ---
+        
+        // 1. Để ĐỌC file .docx
+        import mammoth from 'https://cdn.skypack.dev/mammoth';
+        
+        // 2. Để ĐỌC file .pdf
+        import * as pdfjsLib from 'https://cdn.skypack.dev/pdfjs-dist/build/pdf.mjs';
+        
+        // 3. Để GHI file .docx
+        import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, Indent, convertInchesToTwip } from 'https://cdn.skypack.dev/docx';
+        
+        // 4. Để LƯU file (kích hoạt tải về)
+        import { saveAs } from 'https://cdn.skypack.dev/file-saver';
+
+        // --- Cấu hình Worker cho PDF.js ---
+        // Cần thiết để PDF.js hoạt động trong trình duyệt
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.skypack.dev/pdfjs-dist/build/pdf.worker.mjs';
+
+        // --- Cấu hình API ---
+        const API_URL = '/api/generate'; // Địa chỉ backend (không đổi)
+
+        // --- Lấy các phần tử DOM ---
+        const form = document.getElementById('testForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const loader = document.getElementById('loader');
+        const notificationDiv = document.getElementById('notification');
+        const matrixFileInput = document.getElementById('matrixFile'); // Input file mới
+
+        // --- Xử lý sự kiện Submit Form ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const subject = document.getElementById('subject').value;
+            const grade = document.getElementById('grade').value;
+            const topic = document.getElementById('topic').value;
+            const numQuestions = document.getElementById('numQuestions').value;
+            const questionType = document.getElementById('questionType').value;
+            const file = matrixFileInput.files[0];
+
+            if (!topic) {
+                showNotification('Vui lòng nhập chủ đề hoặc bài học.', true);
+                return;
+            }
+
+            setLoading(true);
+            let matrixContent = "";
+
+            // --- BƯỚC 1: Đọc file ma trận (nếu có) ---
+            if (file) {
+                try {
+                    showNotification('Đang đọc file ma trận...', false, 'text-blue-600');
+                    if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                        matrixContent = await readDocx(file);
+                    } else if (file.type === 'application/pdf') {
+                        matrixContent = await readPdf(file);
+                    } else if (file.type === 'text/plain') {
+                        matrixContent = await readTxt(file);
+                    } else {
+                        throw new Error('Định dạng file không hỗ trợ. Chỉ chấp nhận .docx, .pdf, .txt');
+                    }
+                } catch (err) {
+                    console.error('Lỗi đọc file:', err);
+                    showNotification(`Lỗi đọc file: ${err.message}`, true);
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            showNotification('Đang tạo đề, vui lòng chờ...', false, 'text-blue-600');
+
+            // --- BƯỚC 2: Xây dựng Prompt (có bổ sung ma trận) ---
+            const systemPrompt = `Bạn là một trợ lý chuyên nghiệp, chuyên tạo ra các đề kiểm tra chất lượng cao cho giáo viên tiểu học tại Việt Nam.
+Đề bài phải thể hiện rõ 4 mức theo Thông tư 27 của Bộ Giáo dục và đào tạo Việt Nam, ngôn ngữ phù hợp với lứa tuổi học sinh, và bám sát chủ đề được cung cấp.
+Định dạng đầu ra phải là văn bản thuần túy (plain text), sạch sẽ, dễ dàng sao chép và dán vào Microsoft Word.
+Luôn bao gồm một tiêu đề chung cho bài kiểm tra (ví dụ: 'ĐỀ KIỂM TRA GIỮA KỲ I', 'ĐỀ KIỂM TRA CUỐI KỲ I', 'ĐỀ KIỂM TRA GIỮA KỲ II', 'ĐỀ KIỂM TRA CUỐI KỲ II' ).
+KHÔNG cung cấp đáp án đúng hoặc lời giải. Chỉ tạo đề bài.
+Khi tạo câu trắc nghiệm, luôn trình bày 3 đáp án A, B, C đối với khối 1, 2, 3 và 4 đáp án A, B, C, D rõ ràng.
+Nếu người dùng cung cấp một 'ma trận đề', hãy tuân thủ nghiêm ngặt cấu trúc, số lượng câu, và các mức độ nhận thức được mô tả trong ma trận đó.`;
+
+            let userQuery = `Hãy tạo một đề kiểm tra cho:
+- Môn học: ${subject}
+- Lớp: ${grade}
+- Chủ đề/Bài học: ${topic}
+- Số lượng câu hỏi: ${numQuestions}
+- Loại câu hỏi: ${questionType}`;
+
+            if (matrixContent) {
+                userQuery += `\n\n--- NỘI DUNG MA TRẬN ĐỀ ĐÍNH KÈM ---\n${matrixContent}\n--- KẾT THÚC MA TRẬN ---`;
+                userQuery += `\n(Lưu ý quan trọng: Hãy tạo đề dựa theo ma trận đề trên.)`;
+            }
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            // --- BƯỚC 3: Gọi Backend (Không thay đổi) ---
+            try {
+                const result = await callBackendAPI(payload);
+                
+                if (result.text) {
+                    showNotification('Đang tạo file Word...', false, 'text-blue-600');
+                    // --- BƯỚC 4: Tạo và tải file .docx ---
+                    await generateAndDownloadDocx(result.text, topic, subject, grade);
+                    showNotification('Tải file .docx thành công!', false, 'text-green-600');
+                } else {
+                    console.error('Phản hồi API không hợp lệ:', result);
+                    showNotification('Không nhận được nội dung. Vui lòng thử lại.', true);
+                }
+
+            } catch (err) {
+                console.error('Lỗi khi gọi API:', err);
+                let errorMsg = 'Đã có lỗi xảy ra. Vui lòng thử lại.';
+                try {
+                    const errorJsonString = err.message.substring(err.message.indexOf('{'));
+                    const errorJson = JSON.parse(errorJsonString);
+                    if (errorJson.error) errorMsg = `Lỗi từ máy chủ: ${errorJson.error}`;
+                } catch(e) {
+                    if (err.message.includes('status: 500')) errorMsg = 'Lỗi 500: Máy chủ gặp sự cố nội bộ.';
+                    else errorMsg = err.message;
+                }
+                showNotification(errorMsg, true);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // --- Hàm gọi Backend (Không thay đổi) ---
+        async function callBackendAPI(payload) {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
+            }
+            return await response.json();
+        }
+
+        // --- CÁC HÀM TIỆN ÍCH MỚI ---
+
+        // --- Nhóm hàm đọc file ---
+        async function readDocx(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+            return result.value;
+        }
+
+        async function readPdf(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let text = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                text += textContent.items.map(item => item.str).join(' ') + '\n';
+            }
+            return text;
+        }
+
+        async function readTxt(file) {
+            return file.text();
+        }
+
+        // --- Hàm tạo và tải file .docx ---
+        async function generateAndDownloadDocx(text, topic, subject, grade) {
+            const lines = text.split('\n');
+            const paragraphs = [];
+
+            // Biểu thức chính quy để phát hiện các phần tử
+            const titleRegex = /^(BÀI KIỂM TRA|ĐỀ KIỂM TRA)/i;
+            const questionRegex = /^(Câu \d+|Bài \d+)\s*[:.]/i; // "Câu 1:", "Câu 1.", "Bài 1:"
+            const optionRegex = /^\s*([A-D][\.\)])/i; // "A.", "B)", " c."
+
+            // Xử lý Tiêu đề (dòng đầu tiên)
+            if (lines.length > 0 && titleRegex.test(lines[0])) {
+                paragraphs.push(
+                    new Paragraph({
+                        children: [new TextRun({ text: lines[0].toUpperCase(), bold: true, size: 28 })], // 14pt
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 300 } // Khoảng cách sau tiêu đề
+                    })
+                );
+                // Thêm thông tin Môn, Lớp (nếu AI không tự tạo)
+                if (!/Môn:/i.test(text)) {
+                    paragraphs.push(new Paragraph({
+                        text: `Môn: ${subject} - Lớp ${grade}`,
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    }));
+                }
+            } else {
+                // Tiêu đề dự phòng
+                paragraphs.push(new Paragraph({
+                    children: [new TextRun({ text: `BÀI KIỂM TRA ${subject.toUpperCase()}`, bold: true, size: 28 })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 300 }
+                }));
+            }
+
+            // Xử lý nội dung đề
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+
+                if (line.trim() === '') {
+                    // paragraphs.push(new Paragraph("")); // Bỏ qua các dòng trống
+                    continue;
+                }
+
+                if (questionRegex.test(line)) {
+                    // Đây là một câu hỏi (Câu 1, Bài 2...)
+                    const match = line.match(questionRegex);
+                    const questionNumber = match[0];
+                    const questionText = line.substring(questionNumber.length).trim();
+                    
+                    paragraphs.push(new Paragraph({
+                        children: [
+                            new TextRun({ text: questionNumber.trim(), bold: true }),
+                            new TextRun({ text: ` ${questionText}` })
+                        ],
+                        spacing: { before: 200 } // Khoảng cách trước mỗi câu hỏi
+                    }));
+                } else if (optionRegex.test(line)) {
+                    // Đây là một lựa chọn (A, B, C, D)
+                    paragraphs.push(new Paragraph({
+                        text: line.trim(),
+                        indent: { left: convertInchesToTwip(0.5) } // Thụt lề 0.5 inch (1.27cm)
+                    }));
+                } else {
+                    // Đây là văn bản nội dung (ví dụ: đoạn văn đọc hiểu)
+                    paragraphs.push(new Paragraph({
+                        text: line,
+                        indent: { firstLine: convertInchesToTwip(0.5) } // Thụt lề dòng đầu
+                    }));
+                }
+            }
+
+            const doc = new Document({
+                sections: [{
+                    properties: {
+                        // Định dạng trang A4, căn lề chuẩn
+                        page: {
+                            margin: {
+                                top: convertInchesToTwip(0.79), // 2cm
+                                right: convertInchesToTwip(0.79), // 2cm
+                                bottom: convertInchesToTwip(0.79), // 2cm
+                                left: convertInchesToTwip(1.18) // 3cm
+                            }
+                        }
+                    },
+                    children: paragraphs
+                }],
+                styles: {
+                    default: {
+                        document: {
+                            run: {
+                                font: "Times New Roman",
+                                size: 26 // 13pt
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Tạo file blob và kích hoạt tải về
+            const blob = await Packer.toBlob(doc);
+            const fileName = `DeKiemTra_${subject.replace(/ /g, '_')}_Lop${grade}.docx`;
+            saveAs(blob, fileName);
+        }
+
+
+        // --- Các hàm tiện ích cho UI (Cập nhật) ---
+        function setLoading(isLoading) {
+            if (isLoading) {
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Đang xử lý...';
+                loader.classList.remove('hidden');
+                notificationDiv.textContent = '';
+            } else {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Tạo Đề & Tải Về (.docx)';
+                loader.classList.add('hidden');
+            }
+        }
+        
+        function showNotification(message, isError = false, customClass = '') {
+            notificationDiv.textContent = message;
+            notificationDiv.className = 'text-center font-medium mt-4'; // Reset
+            
+            if(customClass) {
+                notificationDiv.classList.add(customClass);
+            } else if (isError) {
+                notificationDiv.classList.add('text-red-600');
+            } else {
+                notificationDiv.classList.add('text-green-600');
+            }
+        }
+
+    </script>
+</body>
+</html>
